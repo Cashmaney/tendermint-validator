@@ -1,0 +1,8 @@
+#!/bin/bash
+# This `DEBIAN/postrm` script is run post-uninstallation
+
+set -e
+
+systemctl stop validator-node    || true
+systemctl disable validator-node || true
+rm -f /etc/systemd/system/validator-node.service

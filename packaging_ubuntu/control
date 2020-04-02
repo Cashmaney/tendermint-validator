@@ -1,0 +1,7 @@
+Package: tendermint-validator
+Priority: optional
+Architecture: amd64
+Homepage: https://gitlab.com/polychainlabs/tendermint-validator
+Maintainer: https://gitlab.com/polychainlabs
+Description: Lightweight Tendermint Validator
+Version: 0.0.1
