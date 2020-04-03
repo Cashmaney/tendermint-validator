@@ -2,20 +2,21 @@ package signer
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/libs/log"
+	tnet "github.com/tendermint/tendermint/libs/net"
+	svc "github.com/tendermint/tendermint/libs/service"
+	p2pconn "github.com/tendermint/tendermint/p2p/conn"
+	pv "github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/types"
 	"net"
 	"time"
-
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
-	p2pconn "github.com/tendermint/tendermint/p2p/conn"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/types"
 )
 
 // NodeClient dials a node responds to signature requests using its privVal.
 type NodeClient struct {
-	cmn.BaseService
+	svc.BaseService
 
 	address string
 	chainID string
@@ -36,6 +37,7 @@ func NewNodeClient(
 	chainID string,
 	privVal types.PrivValidator,
 	dialer net.Dialer,
+	endpoint *pv.SignerListenerEndpoint,
 ) *NodeClient {
 	rs := &NodeClient{
 		address: address,
@@ -45,11 +47,11 @@ func NewNodeClient(
 		privKey: ed25519.GenPrivKey(),
 	}
 
-	rs.BaseService = *cmn.NewBaseService(logger, "RemoteSigner", rs)
+	rs.BaseService = *svc.NewBaseService(logger, "RemoteSigner", rs)
 	return rs
 }
 
-// OnStart implements cmn.Service.
+// OnStart implements svc.Service.
 func (rs *NodeClient) OnStart() error {
 	go rs.loop()
 	return nil
@@ -62,14 +64,14 @@ func (rs *NodeClient) loop() {
 		if !rs.IsRunning() {
 			if conn != nil {
 				if err := conn.Close(); err != nil {
-					rs.Logger.Error("Close", "err", cmn.ErrorWrap(err, "closing listener failed"))
+					rs.Logger.Error("Close", "err", errors.Wrap(err, "closing listener failed"))
 				}
 			}
 			return
 		}
 
 		for conn == nil {
-			proto, address := cmn.ProtocolAndAddress(rs.address)
+			proto, address := tnet.ProtocolAndAddress(rs.address)
 			netConn, err := rs.dialer.Dial(proto, address)
 			if err != nil {
 				rs.Logger.Error("Dialing", "err", err)
@@ -92,7 +94,7 @@ func (rs *NodeClient) loop() {
 		// since dialing can take time, we check running again
 		if !rs.IsRunning() {
 			if err := conn.Close(); err != nil {
-				rs.Logger.Error("Close", "err", cmn.ErrorWrap(err, "closing listener failed"))
+				rs.Logger.Error("Close", "err", errors.Wrap(err, "closing listener failed"))
 			}
 			return
 		}
@@ -120,52 +122,70 @@ func (rs *NodeClient) loop() {
 	}
 }
 
-func (rs *NodeClient) handleRequest(req privval.RemoteSignerMsg) (privval.RemoteSignerMsg, error) {
-	var res privval.RemoteSignerMsg
+func (rs *NodeClient) handleRequest(req pv.SignerMessage) (pv.SignerMessage, error) {
+	var res pv.SignerMessage
 	var err error
 
 	switch typedReq := req.(type) {
-	case *privval.PubKeyRequest:
+	case *pv.PubKeyRequest:
 		pubKey := rs.privVal.GetPubKey()
-		res = &privval.PubKeyResponse{PubKey: pubKey, Error: nil}
-	case *privval.SignVoteRequest:
+		res = &pv.PubKeyResponse{PubKey: pubKey, Error: nil}
+	case *pv.SignVoteRequest:
 		err = rs.privVal.SignVote(rs.chainID, typedReq.Vote)
 		if err != nil {
 			rs.Logger.Error("Failed to sign vote", "address", rs.address, "error", err, "vote", typedReq.Vote)
-			res = &privval.SignedVoteResponse{
+			res = &pv.SignedVoteResponse{
 				Vote: nil,
-				Error: &privval.RemoteSignerError{
+				Error: &pv.RemoteSignerError{
 					Code:        0,
 					Description: err.Error(),
 				},
 			}
 		} else {
 			rs.Logger.Info("Signed vote", "address", rs.address, "vote", typedReq.Vote)
-			res = &privval.SignedVoteResponse{Vote: typedReq.Vote, Error: nil}
+			res = &pv.SignedVoteResponse{Vote: typedReq.Vote, Error: nil}
 		}
-	case *privval.SignProposalRequest:
+	case *pv.SignProposalRequest:
 		err = rs.privVal.SignProposal(rs.chainID, typedReq.Proposal)
 		if err != nil {
 			rs.Logger.Error("Failed to sign proposal", "address", rs.address, "error", err, "proposal", typedReq.Proposal)
-			res = &privval.SignedProposalResponse{
+			res = &pv.SignedProposalResponse{
 				Proposal: nil,
-				Error: &privval.RemoteSignerError{
+				Error: &pv.RemoteSignerError{
 					Code:        0,
 					Description: err.Error(),
 				},
 			}
 		} else {
 			rs.Logger.Info("Signed proposal", "address", rs.address, "proposal", typedReq.Proposal)
-			res = &privval.SignedProposalResponse{
+			res = &pv.SignedProposalResponse{
 				Proposal: typedReq.Proposal,
 				Error:    nil,
 			}
 		}
-	case *privval.PingRequest:
-		res = &privval.PingResponse{}
+	case *pv.PingRequest:
+		res = &pv.PingResponse{}
 	default:
 		err = fmt.Errorf("unknown msg: %v", typedReq)
 	}
 
 	return res, err
+}
+
+// Ping sends a ping request to the remote signer
+func (sc *NodeClient) Ping() error {
+	response, err := sc.endpoint.SendRequest(&PingRequest{})
+
+	if err != nil {
+		sc.endpoint.Logger.Error("SignerClient::Ping", "err", err)
+		return nil
+	}
+
+	_, ok := response.(*PingResponse)
+	if !ok {
+		sc.endpoint.Logger.Error("SignerClient::Ping", "err", "response != PingResponse")
+		return err
+	}
+
+	return nil
 }

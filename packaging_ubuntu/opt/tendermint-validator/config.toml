@@ -1,0 +1,17 @@
+# Path to priv validator key json file
+key_file = "/home/replace_username/.signer/config/priv_validator_key.json"
+
+# The state directory stores watermarks for double signing protection.
+# Each validator instance maintains a watermark.
+state_dir = "/home/replace_username/.signer/watermark/"
+
+# The network chain id for your p2p nodes
+chain_id = "enigma-1"
+
+# Configure any number of p2p network nodes.
+# We recommend at least 2 nodes for redundancy.
+[[node]]
+address = "tcp://bootstrap.mainnet.enigma.co:26656"
+
+#[[node]]
+#address = "tcp://<node-b ip>:1234"

@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"tendermint-signer/internal/signer"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
 	tmlog "github.com/tendermint/tendermint/libs/log"
+	tos "github.com/tendermint/tendermint/libs/os"
+	svc "github.com/tendermint/tendermint/libs/service"
 	"github.com/tendermint/tendermint/privval"
+	"tendermint-signer/internal/signer"
 )
 
 func fileExists(filename string) bool {
@@ -51,7 +51,7 @@ func main() {
 	signer.InitSerialization()
 
 	// services to stop on shutdown
-	var services []cmn.Service
+	var services []svc.Service
 
 	chainID := config.ChainID
 	if chainID == "" {
@@ -81,7 +81,7 @@ func main() {
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	cmn.TrapSignal(logger, func() {
+	tos.TrapSignal(logger, func() {
 		for _, service := range services {
 			err := service.Stop()
 			if err != nil {

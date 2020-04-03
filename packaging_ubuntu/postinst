@@ -3,6 +3,20 @@
 
 set -e
 
+USER=$(logname)
+
+mkdir -p /opt/.signer/config
+mkdir -p ~/.signer/watermark
+
+mv /opt/tendermint-validator/config.toml ~/.signer/config/config.toml
+mv /opt/tendermint-validator/priv_validator_state.json ~/.signer/watermark/priv_validator_state.json
+
+if id -u $USER > /dev/null 2>&1; then
+    chown ${USER}:${USER} -R ~/.signer
+fi
+
+perl -i -pe "s/replace_username/$USER/" ~/.signer/config/config.toml
+
 cat <<EOF > /etc/systemd/system/validator-node.service
 [Unit]
 Description=Tendermint Validator Node Service
@@ -10,12 +24,12 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=$(which signer) start
+ExecStart=$(which signer) --config /home/$(logname)/.signer/config/config.toml
 User=$(logname)
 Restart=always
 StartLimitInterval=0
 RestartSec=3
-LimitNOFILE=65535
+LimitNOFILE=500000
 
 [Install]
 WantedBy=multi-user.target

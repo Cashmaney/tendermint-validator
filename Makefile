@@ -18,7 +18,11 @@ deb: build
 	mv -f ./build/signer /tmp/TendermintValidator/deb/bin/signer
 	chmod +x /tmp/TendermintValidator/deb/bin/signer
 
-	mkdir -p /tmp/TendermintValidator/deb/DEBIAN
+	mkdir -p /tmp/TendermintValidator/deb/DEBIAN/
+	mkdir -p /tmp/TendermintValidator/deb/opt/tendermint-validator/
+
+	cp -r ./packaging_ubuntu/opt/* /tmp/TendermintValidator/deb/opt/
+
 	cp ./packaging_ubuntu/control /tmp/TendermintValidator/deb/DEBIAN/control
 	echo "" >> /tmp/TendermintValidator/deb/DEBIAN/control
 	cp ./packaging_ubuntu/postinst /tmp/TendermintValidator/deb/DEBIAN/postinst

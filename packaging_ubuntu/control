@@ -4,4 +4,4 @@ Architecture: amd64
 Homepage: https://gitlab.com/polychainlabs/tendermint-validator
 Maintainer: https://gitlab.com/polychainlabs
 Description: Lightweight Tendermint Validator
-Version: 0.0.1
+Version: 0.33.0

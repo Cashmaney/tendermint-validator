@@ -3,7 +3,7 @@ package signer
 import (
 	"io"
 
-	amino "github.com/tendermint/go-amino"
+	"github.com/tendermint/go-amino"
 	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
 	"github.com/tendermint/tendermint/privval"
 )
@@ -17,7 +17,7 @@ func InitSerialization() {
 }
 
 // ReadMsg reads a message from an io.Reader
-func ReadMsg(reader io.Reader) (msg privval.RemoteSignerMsg, err error) {
+func ReadMsg(reader io.Reader) (msg privval.SignerMessage, err error) {
 	const maxRemoteSignerMsgSize = 1024 * 10
 	_, err = codec.UnmarshalBinaryLengthPrefixedReader(reader, &msg, maxRemoteSignerMsgSize)
 	return
