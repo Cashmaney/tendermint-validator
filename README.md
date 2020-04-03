@@ -12,12 +12,21 @@ Before starting, please make sure to fully understand node and validator require
 
 ## Setup
 
-_The security of any key material is outside the scope of this guide. At a minimum we recommend performing key material steps on airgapped computers and using your audited security procedures._
+Download the package: 
 
-### Setup Validator Instance
+```bash
+wget https://github.com/Cashmaney/tendermint-validator/releases/download/0.0.1/tendermint-validator_0.33.0_amd64.deb
+```
 
-Configure the instance with a [toml](https://github.com/toml-lang/toml) file. Below is a sample configuration.
+Unpack:
 
+```bash
+sudo dpkg -i tendermint-validator_0.33.0_amd64.deb
+```
+
+### Configure Validator Instance
+
+You will find the default file in ``~/.signer/config/config.toml``
 ```toml
 # Path to priv validator key json file
 key_file = "/path/to/priv_validator_key.json"
@@ -60,7 +69,7 @@ _We recommend hosting nodes on separate and isolated infrastructure from your va
 Once your validator instance and node is configured, you can launch the signer.
 
 ```bash
-signer --config /path/to/config.toml
+sudo systemctl start validator-node
 ```
 
 _We recommend using systemd or similar service management program as appropriate for your runtime platform._
