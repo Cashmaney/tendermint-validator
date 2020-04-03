@@ -1,7 +1,6 @@
 # Tendermint Validator
 
-A lightweight single key tendermint validator for sentry nodes.
-
+A lightweight single key tendermint validator for sentry nodes. Based on https://gitlab.com/polychainlabs/tendermint-validator
 ## Design
 
 A lightweight alternative to using a full node instance for validating blocks. The validator is able to connect to any number of sentry nodes and will sign blocks provided by the nodes. The validator maintains a watermark file to protect against double signing.
