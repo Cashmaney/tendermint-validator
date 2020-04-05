@@ -69,14 +69,14 @@ func main() {
 
 	for _, node := range config.Nodes {
 		dialer := net.Dialer{Timeout: 30 * time.Second}
-		signer := signer.NewNodeClient(node.Address, logger, config.ChainID, pv, dialer)
+		tsigner := signer.NewNodeClient(node.Address, logger, config.ChainID, pv, dialer)
 
-		err := signer.Start()
+		err := tsigner.Start()
 		if err != nil {
 			panic(err)
 		}
 
-		services = append(services, signer)
+		services = append(services, tsigner)
 	}
 
 	wg := sync.WaitGroup{}

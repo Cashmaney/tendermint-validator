@@ -37,7 +37,6 @@ func NewNodeClient(
 	chainID string,
 	privVal types.PrivValidator,
 	dialer net.Dialer,
-	endpoint *pv.SignerListenerEndpoint,
 ) *NodeClient {
 	rs := &NodeClient{
 		address: address,
@@ -130,6 +129,7 @@ func (rs *NodeClient) handleRequest(req pv.SignerMessage) (pv.SignerMessage, err
 	case *pv.PubKeyRequest:
 		pubKey := rs.privVal.GetPubKey()
 		res = &pv.PubKeyResponse{PubKey: pubKey, Error: nil}
+		rs.Logger.Info("Signed PubKeyRequest", "address", rs.address, "pubkey", pubKey)
 	case *pv.SignVoteRequest:
 		err = rs.privVal.SignVote(rs.chainID, typedReq.Vote)
 		if err != nil {
@@ -165,27 +165,10 @@ func (rs *NodeClient) handleRequest(req pv.SignerMessage) (pv.SignerMessage, err
 		}
 	case *pv.PingRequest:
 		res = &pv.PingResponse{}
+		//rs.Logger.Debug("PingResponse")
 	default:
 		err = fmt.Errorf("unknown msg: %v", typedReq)
 	}
 
 	return res, err
-}
-
-// Ping sends a ping request to the remote signer
-func (sc *NodeClient) Ping() error {
-	response, err := sc.endpoint.SendRequest(&PingRequest{})
-
-	if err != nil {
-		sc.endpoint.Logger.Error("SignerClient::Ping", "err", err)
-		return nil
-	}
-
-	_, ok := response.(*PingResponse)
-	if !ok {
-		sc.endpoint.Logger.Error("SignerClient::Ping", "err", "response != PingResponse")
-		return err
-	}
-
-	return nil
 }
