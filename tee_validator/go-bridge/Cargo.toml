@@ -1,0 +1,30 @@
+[package]
+name = "go-bridge"
+version = "0.1.0"
+authors = ["Cash Maney <cashmaney@github.io>"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = []
+
+[dependencies]
+tee_validator = { path = "../app/" }
+errno = "0.2"
+log = "0.4.8"
+
+[build-dependencies]
+cbindgen = { version = "0.9.1" }
+sgx_edl = { git = "https://github.com/apache/teaclave-sgx-sdk.git", rev = "v1.1.2" }
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = true
+lto = false
+debug-assertions = false
+codegen-units = 16
+panic = 'unwind'
+incremental = true
+overflow-checks = true

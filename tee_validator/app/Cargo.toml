@@ -1,0 +1,15 @@
+[package]
+name = "tee_validator"
+version = "0.1.0"
+authors = ["Itzik Grossman <itzik@keytango.io>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sgx_urts				= { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
+sgx_types 				= { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
+# sgx_crypto_helper 		= { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
+
+log                     = "0.4.8"
+dirs 					= "1.0.2"

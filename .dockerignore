@@ -1,0 +1,9 @@
+build
+**/target
+
+**/*.a
+**/*.so
+**/Enclave_t.*
+**/Enclave_u.*
+**/*.lock
+tee_validator/third_party/vendor

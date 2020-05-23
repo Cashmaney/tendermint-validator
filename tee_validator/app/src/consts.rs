@@ -1,0 +1,1 @@
+pub static ENCLAVE_FILE: &str = "enclave.signed.so";

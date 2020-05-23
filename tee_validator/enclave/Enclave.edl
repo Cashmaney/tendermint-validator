@@ -1,0 +1,60 @@
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+enclave {
+	from "sgx_backtrace.edl" import *;
+	from "sgx_tstd.edl" import *;
+	from "sgx_stdio.edl" import *;
+	from "sgx_tstdc.edl" import *;
+	from "sgx_tprotected_fs.edl" import *;
+	from "sgx_fs.edl" import *;
+	from "sgx_net.edl" import *;
+	from "sgx_time.edl" import *;
+	from "sgx_env.edl" import *;
+
+	include "sgx_quote.h"
+
+    trusted {
+
+	    public sgx_status_t ecall_get_ecc_signing_pubkey(
+			[out, size=pubkey_size] uint8_t* pubkey, size_t pubkey_size
+	    );
+
+        public sgx_status_t ecall_sign(
+            [in, size=data_len] const uint8_t* data,
+            size_t data_len,
+            [out, size=64] uint8_t* sig
+        );
+
+        public sgx_status_t ecall_import_key(
+            [in, size=key_size] const uint8_t* key,
+            size_t key_size
+        );
+
+        public sgx_status_t ecall_export_key(
+            [in, size=pass_size] const uint8_t* password,
+            size_t pass_size,
+            [out, size=32] uint8_t* key
+        );
+    };
+
+    untrusted {
+
+    };
+
+
+};
