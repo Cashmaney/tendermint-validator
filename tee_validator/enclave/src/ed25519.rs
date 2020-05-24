@@ -18,18 +18,21 @@
 use std::path::Path;
 use std::sgxfs::SgxFile;
 use std::vec::Vec;
-
 use sgx_rand::{Rng, StdRng};
 use sgx_types::*;
 
 use log::*;
-
-use crate::consts::SEALED_SIGNER_SEED_FILE;
+use crate::aes::AesGcm256Key;
+use crate::consts::{PASSWORD_FILE, SEALED_SIGNER_SEED_FILE};
 use crate::fs;
+use crate::password;
 use sp_core::{crypto::Pair, ed25519};
 
 pub fn unseal_pair() -> SgxResult<ed25519::Pair> {
-    let seedvec = unseal_seed()?;
+
+    let key = password::unseal_password()?;
+
+    let seedvec = unseal_seed_with_key(key)?;
 
     let mut seed = [0u8; 32];
     let seedvec = &seedvec[..seed.len()];
@@ -56,8 +59,26 @@ fn unseal_seed() -> SgxResult<Vec<u8>> {
     fs::unseal(SEALED_SIGNER_SEED_FILE)
 }
 
-pub fn seal_seed(pair: &[u8]) -> SgxResult<sgx_status_t> {
-    fs::seal(pair, SEALED_SIGNER_SEED_FILE)
+fn unseal_seed_with_key(key: AesGcm256Key) -> SgxResult<Vec<u8>> {
+    let mut enc_seed = fs::unseal(SEALED_SIGNER_SEED_FILE).unwrap();
+
+    key.decrypt(&mut enc_seed);
+
+    Ok(enc_seed)
+}
+
+pub fn seal_seed_with_key(seed: &[u8], key: AesGcm256Key) -> SgxResult<sgx_status_t> {
+
+    let mut enc_seed = seed.to_vec();
+
+    key.encrypt(&mut enc_seed);
+
+    fs::seal(&enc_seed, SEALED_SIGNER_SEED_FILE)
+}
+
+pub fn seal_seed(seed: &[u8]) -> SgxResult<sgx_status_t> {
+
+    fs::seal(seed, SEALED_SIGNER_SEED_FILE)
 }
 
 pub fn create_sealed_seed() -> SgxResult<sgx_status_t> {

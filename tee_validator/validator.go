@@ -58,9 +58,9 @@ func (pv *EnclavePV) SignProposal(chainID string, proposal *tmtypes.Proposal) er
 	return nil
 }
 
-func (pv *EnclavePV) ImportKey(inputKey ed25519.PrivKeyEd25519) error {
+func (pv *EnclavePV) ImportKey(inputKey ed25519.PrivKeyEd25519, password []byte) error {
 
-	err := api.Import(inputKey[:32])
+	err := api.Import(inputKey[:32], password)
 	if err != nil {
 		return err
 	}

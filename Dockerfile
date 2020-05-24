@@ -59,9 +59,12 @@ RUN mkdir -p /root/.signer/
 
 COPY ./packaging_docker/tendermint-validator/config.toml /root/.signer/config/config.toml
 COPY ./packaging_docker/tendermint-validator/priv_validator_state.json /root/.signer/watermark/enigma-1_priv_validator_state.json
+COPY ./packaging_docker/signer_init.sh /root/
+
+RUN chmod +x signer_init.sh
 
 # don't feel like debugging paths right now
 # COPY /opt/sgxsdk/lib64/libsgx_uae_service.so /usr/lib/libsgx_uae_service.so
 
 # Run enigmad by default, omit entrypoint to ease using container with enigmacli
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/bin/bash", "signer_init.sh"]

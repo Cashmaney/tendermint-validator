@@ -11,11 +11,11 @@
     limitations under the License.
 */
 use std::vec::Vec;
-
-use sgx_types::sgx_status_t;
-
 use log::*;
-
+use sgx_types::*;
+use sgx_trts::trts::{
+    rsgx_lfence, rsgx_raw_is_outside_enclave, rsgx_sfence, rsgx_slice_is_outside_enclave
+};
 
 pub fn write_slice_and_whitespace_pad(writable: &mut [u8], data: Vec<u8>) {
     if data.len() > writable.len() {
@@ -71,4 +71,22 @@ impl<T, S> UnwrapOrSgxErrorUnexpected for Result<T, S> {
             }
         }
     }
+}
+
+pub fn validate_mut_ptr(ptr: *mut u8, ptr_len: usize) -> SgxResult<()> {
+    if rsgx_raw_is_outside_enclave(ptr, ptr_len) {
+        error!("Tried to access memory outside enclave -- rsgx_slice_is_outside_enclave");
+        return Err(sgx_status_t::SGX_ERROR_UNEXPECTED);
+    }
+    rsgx_sfence();
+    Ok(())
+}
+
+pub fn validate_const_ptr(ptr: *const u8, ptr_len: usize) -> SgxResult<()> {
+    if ptr.is_null() || ptr_len == 0 {
+        error!("Tried to access an empty pointer - encrypted_seed.is_null()");
+        return Err(sgx_status_t::SGX_ERROR_UNEXPECTED);
+    }
+    rsgx_lfence();
+    Ok(())
 }

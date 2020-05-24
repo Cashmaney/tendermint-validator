@@ -8,6 +8,7 @@ import (
 	tmlog "github.com/tendermint/tendermint/libs/log"
 	tos "github.com/tendermint/tendermint/libs/os"
 	svc "github.com/tendermint/tendermint/libs/service"
+	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"log"
 	"net"
@@ -47,12 +48,6 @@ func openPrivateKeyFile(filename string) (ed25519.PrivKeyEd25519, error) {
 		panic(fmt.Sprintf("Tried to import key with an invalid key size %d, Expected 64", len(key)))
 	}
 
-	//privKey := ed25519.PrivKeyEd25519{
-	//
-	//}
-	//
-	//privKey := goed25519.NewKeyFromSeed(key)
-	//
 	var privKey ed25519.PrivKeyEd25519
 	copy(privKey[:], key)
 
@@ -74,24 +69,24 @@ func savePrivateKeyFile(filename string, privKey ed25519.PrivKeyEd25519) error {
 }
 
 func main() {
+
 	val := &teeval.EnclavePV{}
-
-	value := val.GetPubKey().Address()
-
-	fmt.Println(value)
-
-	data := "ABC"
-
-	res, err := val.SignData([]byte(data))
-	if err != nil {
-		panic(err)
-	}
-
-	pk := val.GetPubKey()
-
-	result := pk.VerifyBytes([]byte(data), res)
-	fmt.Print("Verifying signature.. ")
-	fmt.Println(result)
+	//
+	//value := val.GetPubKey().Address()
+	//
+	//fmt.Println(value)
+	//
+	//data := "ABC"
+	//
+	//res, err := val.SignData([]byte(data))
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//pk := val.GetPubKey()
+	//result := pk.VerifyBytes([]byte(data), res)
+	//fmt.Print("Verifying signature.. ")
+	//fmt.Println(result)
 
 	logger := tmlog.NewTMLogger(
 		tmlog.NewSyncWriter(os.Stdout),
@@ -103,26 +98,52 @@ func main() {
 	flag.Parse()
 
 	if *keyImport != "" {
+		fmt.Print("Enter Password: ")
+		bytePassword, err := terminal.ReadPassword(0)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Print("\nRepeat Password: ")
+		bytePassword2, err := terminal.ReadPassword(0)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Print("\n")
+		if string(bytePassword) != string(bytePassword2) {
+			log.Fatal("Passwords do not match")
+		}
+		if len(bytePassword2) == 0 {
+			log.Fatal("Password cannot be empty")
+		}
+
 		privKey, err := openPrivateKeyFile(*keyImport)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
-		err = val.ImportKey(privKey)
+		err = val.ImportKey(privKey, bytePassword)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 		fmt.Println(fmt.Sprintf("Imported key successfully!"))
 		return
 	}
 
 	if *keyExport != "" {
-		res, err := val.ExportKey([]byte(""))
+
+		fmt.Print("Enter Password: ")
+		bytePassword, err := terminal.ReadPassword(0)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
+		}
+
+		res, err := val.ExportKey(bytePassword)
+		if err != nil {
+			log.Fatal(err)
 		}
 		err = savePrivateKeyFile(*keyExport, res)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
 		fmt.Println(fmt.Sprintf("Exported key successfully!"))
@@ -130,7 +151,7 @@ func main() {
 	}
 
 	if *configFile == "" {
-		panic("--config flag is required")
+		*configFile = os.ExpandEnv("$HOME/.signer/config/config.toml")
 	}
 
 	config, err := signer.LoadConfigFromFile(*configFile)

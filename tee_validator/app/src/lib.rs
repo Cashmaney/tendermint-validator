@@ -18,9 +18,9 @@ pub fn e_if_sign(data: &[u8]) -> [u8; 64] {
     sig
 }
 
-pub fn e_if_import_key(key: &[u8]) -> SgxResult<()> {
+pub fn e_if_import_key(key: &[u8], password: &[u8]) -> SgxResult<()> {
     let enclave = init_enclave().unwrap();
-    let res = e_api_import_key(enclave.geteid(), key);
+    let res = e_api_import_key(enclave.geteid(), key, password);
     res
 }
 

@@ -3,10 +3,11 @@
 
 set -e
 
-USER=$(logname)
+USER=$(whoami)
 
 mkdir -p /opt/.signer/config
-mkdir -p ~/.signer/watermark
+mkdir -p ~/.signer/watermark/
+mkdir -p ~/.signer/config/
 
 mv /opt/tendermint-validator/config.toml ~/.signer/config/config.toml
 mv /opt/tendermint-validator/priv_validator_state.json ~/.signer/watermark/priv_validator_state.json
@@ -24,8 +25,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=$(which signer) --config /home/$(logname)/.signer/config/config.toml
-User=$(logname)
+ExecStart=$(which signer) --config /home/$(whoami)/.signer/config/config.toml
+User=$(whoami)
 Restart=always
 StartLimitInterval=0
 RestartSec=3

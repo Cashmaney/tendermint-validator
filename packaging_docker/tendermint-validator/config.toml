@@ -11,7 +11,7 @@ chain_id = "enigma-1"
 # Configure any number of p2p network nodes.
 # We recommend at least 2 nodes for redundancy.
 [[node]]
-address = "tcp://34.72.122.48:26657"
+address = "tcp://x.x.x.x:26657"
 
 #[[node]]
 #address = "tcp://<node-b ip>:1234"

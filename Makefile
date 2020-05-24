@@ -1,4 +1,4 @@
-VERSION = 0.0.1
+VERSION = 0.5.0
 # GOLINT:=$(shell go list -f {{.Target}} golang.org/x/lint/golint)
 UNAME_S = $(shell uname -s)
 
@@ -26,7 +26,9 @@ deb: build
 	rm -rf /tmp/TendermintValidator
 
 	mkdir -p /tmp/TendermintValidator/deb/bin
+	mkdir -p /tmp/TendermintValidator/deb/usr/local/lib
 	mv -f ./build/signer /tmp/TendermintValidator/deb/bin/signer
+	mv -f ./build/enclave.signed.so /tmp/TendermintValidator/deb/usr/local/lib/enclave.signed.so
 	chmod +x /tmp/TendermintValidator/deb/bin/signer
 
 	mkdir -p /tmp/TendermintValidator/deb/DEBIAN/

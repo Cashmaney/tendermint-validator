@@ -35,7 +35,9 @@ extern "C" {
         eid: sgx_enclave_id_t,
         retval: *mut sgx_status_t,
         key: *const u8,
-        key_len: usize,
+        key_size: usize,
+        password: *const u8,
+        password_size: usize,
     ) -> sgx_status_t;
 
     fn ecall_export_key(
@@ -105,11 +107,13 @@ pub fn e_api_sign(eid: sgx_enclave_id_t, data: &[u8]) -> SgxResult<[u8; 64]> {
     Ok(sig)
 }
 
-pub fn e_api_import_key(eid: sgx_enclave_id_t, key: &[u8]) -> SgxResult<()> {
+pub fn e_api_import_key(eid: sgx_enclave_id_t, key: &[u8], password: &[u8]) -> SgxResult<()> {
 
     let mut status = sgx_status_t::SGX_SUCCESS;
     let result =
-        unsafe { ecall_import_key(eid, &mut status, key.as_ptr(), key.len()) };
+        unsafe { ecall_import_key(eid, &mut status,
+                                  key.as_ptr(), key.len(),
+                                  password.as_ptr(), password.len()) };
     if status != sgx_status_t::SGX_SUCCESS {
         return Err(status);
     }

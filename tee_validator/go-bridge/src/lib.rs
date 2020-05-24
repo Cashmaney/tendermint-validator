@@ -11,7 +11,7 @@ use tee_validator::{e_if_get_pubkey, e_if_sign, e_if_import_key, e_if_export_key
 pub use memory::{free_rust, Buffer};
 
 #[no_mangle]
-pub extern "C" fn import_key(key: Buffer, err: Option<&mut Buffer>) -> bool {
+pub extern "C" fn import_key(key: Buffer, password: Buffer, err: Option<&mut Buffer>) -> bool {
     let data = match key.read() {
         None => {
             set_error("Imported key is empty".to_string(), err);
@@ -20,7 +20,15 @@ pub extern "C" fn import_key(key: Buffer, err: Option<&mut Buffer>) -> bool {
         Some(r) => r,
     };
 
-    return match e_if_import_key(data) {
+    let pass = match password.read() {
+        None => {
+            set_error("Password cannot be empty".to_string(), err);
+            return false;
+        }
+        Some(r) => r,
+    };
+
+    return match e_if_import_key(data, pass) {
         Err(e) => {
             error::set_error(e.to_string(), err);
             false
@@ -34,17 +42,15 @@ pub extern "C" fn import_key(key: Buffer, err: Option<&mut Buffer>) -> bool {
 
 #[no_mangle]
 pub extern "C" fn export_key(password: Buffer, err: Option<&mut Buffer>) -> Buffer {
-    // let data = match password.read() {
-    //     None => {
-    //         set_error("Password is empty".to_string(), err);
-    //         return Buffer::default();
-    //     }
-    //     Some(r) => r,
-    // };
+    let data = match password.read() {
+        None => {
+            set_error("Password is empty".to_string(), err);
+            return Buffer::default();
+        }
+        Some(r) => r,
+    };
 
-    let data: Vec<u8> = vec![1, 2, 3, 4];
-
-    return match e_if_export_key(data.as_slice()) {
+    return match e_if_export_key(data) {
         Err(e) => {
             error::set_error(e.to_string(), err);
             Buffer::default()

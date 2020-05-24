@@ -42,7 +42,9 @@ enclave {
 
         public sgx_status_t ecall_import_key(
             [in, size=key_size] const uint8_t* key,
-            size_t key_size
+            size_t key_size,
+            [in, size=password_size] const uint8_t* password,
+            size_t password_size
         );
 
         public sgx_status_t ecall_export_key(

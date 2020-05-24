@@ -11,14 +11,15 @@ crate-type = ["staticlib"]
 default = []
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
-sgx_types = { rev="v1.1.2", git = "https://github.com/apache/incubator-teaclave-sgx-sdk.git" }
-sgx_tstd = { rev="v1.1.2", git = "https://github.com/apache/incubator-teaclave-sgx-sdk.git", features = ["net", "backtrace", "untrusted_fs"] }
-sgx_trts = { rev="v1.1.2", git = "https://github.com/apache/incubator-teaclave-sgx-sdk.git" }
-sgx_rand = { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
-sgx_tseal = { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
-sgx_tcrypto = { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
+sgx_types       = { rev = "v1.1.2", git = "https://github.com/apache/incubator-teaclave-sgx-sdk.git" }
+sgx_tstd        = { rev = "v1.1.2", git = "https://github.com/apache/incubator-teaclave-sgx-sdk.git", features = ["net", "backtrace", "untrusted_fs"] }
+sgx_trts        = { rev = "v1.1.2", git = "https://github.com/apache/incubator-teaclave-sgx-sdk.git" }
+sgx_rand        = { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
+sgx_tseal       = { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
+sgx_tcrypto     = { rev = "v1.1.2", git = "https://github.com/apache/teaclave-sgx-sdk.git" }
 
 [dependencies]
-sp-core = { version = "=2.0.0-alpha.7", default-features = false, features=["full_crypto"]}
-log = { version = "0.4.8" }
+sp-core           = { version = "=2.0.0-alpha.7", default-features = false, features=["full_crypto"]}
+log               = { version = "0.4.8" }
 # might have to enable --legacy-compatability
+ring              = { git = "https://github.com/mesalock-linux/ring-sgx", tag = "v0.16.5" }

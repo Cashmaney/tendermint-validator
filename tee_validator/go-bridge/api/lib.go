@@ -40,10 +40,11 @@ func Sign(bytes []byte) ([]byte, error) {
 }
 
 // Import a public key from the enclave
-func Import(bytes []byte) error {
+func Import(bytes []byte, password []byte) error {
 	slice := sendSlice(bytes)
+	passwordSlice := sendSlice(password)
 	errmsg := C.Buffer{}
-	_, err := C.import_key(slice, &errmsg)
+	_, err := C.import_key(slice, passwordSlice, &errmsg)
 	if err != nil {
 		return errorWithMessage(err, errmsg)
 	}
