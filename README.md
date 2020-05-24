@@ -1,6 +1,9 @@
 # Tendermint Validator
 
 A lightweight single key tendermint validator for sentry nodes. Based on https://gitlab.com/polychainlabs/tendermint-validator
+
+With modifications to work with tendermint 0.33.0, inside SGX. 
+
 ## Design
 
 A lightweight alternative to using a full node instance for validating blocks. The validator is able to connect to any number of sentry nodes and will sign blocks provided by the nodes. The validator maintains a watermark file to protect against double signing.
@@ -19,11 +22,19 @@ instructions.
 
 ## Docker Setup
 
-You can use the handy docker-compose.yaml file in this repository to quickstart (and avoid having to worry about aesm) your validator using:
+You can use the handy docker-compose.yaml file in this repository to quickstart (and avoid having to worry about aesm) your validator.
 
-`docker-compose up`
+1. Copy the `docker-compose.yaml` file to your local machine.
 
-Then performing the steps [here](#configure-validator-instance)
+2. (optional) Automatically configure a remote node address by setting the `NODE_ADDRESS` environment variable:
+
+    ```export NODE_ADDRESS=x.x.x.x```
+
+3. Start the node using
+
+    `docker-compose up`
+
+4. Perform the steps [here](#configure-validator-instance)
 
 _If you are not using a cloud-provider VM you should replace `/dev/sgx` with `/dev/isgx` in the docker-compose.yaml file_
 
@@ -32,7 +43,7 @@ _If you are not using a cloud-provider VM you should replace `/dev/sgx` with `/d
 Download the package: 
 
 ```bash
-wget https://github.com/Cashmaney/tendermint-validator/releases/download/0.0.1/sgx-validator_0.5.0_amd64.deb
+wget https://github.com/Cashmaney/tendermint-validator/releases/download/0.5.0/sgx-validator_0.5.0_amd64.deb
 ```
 
 Unpack:

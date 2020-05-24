@@ -21,4 +21,4 @@ services:
     stdin_open: true
     tty: true
     environment:
-      NODE_ADDRESS=127.0.0.1
+      NODE_ADDRESS
