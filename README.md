@@ -9,26 +9,42 @@ A lightweight alternative to using a full node instance for validating blocks. T
 
 Before starting, please make sure to fully understand node and validator requirements and operation for your particular network and chain.
 
-## Setup
+You will also need an SGX-capable machine
+
+## Setup SGX
+
+Setting up SGX is outside the scope of this document. This package has been configured to work with version 2.9.1. You can
+refer to pages such as [this](https://github.com/enigmampc/EnigmaBlockchain/blob/master/docs/dev/setup-sgx.md) for installation 
+instructions.
+
+## Docker Setup
+
+You can use the handy docker-compose.yaml file in this repository to quickstart (and avoid having to worry about aesm) your validator using:
+
+`docker-compose up`
+
+Then performing the steps [here](#configure-validator-instance)
+
+_If you are not using a cloud-provider VM you should replace `/dev/sgx` with `/dev/isgx` in the docker-compose.yaml file_
+
+## Setup Validator
 
 Download the package: 
 
 ```bash
-wget https://github.com/Cashmaney/tendermint-validator/releases/download/0.0.1/tendermint-validator_0.33.0_amd64.deb
+wget https://github.com/Cashmaney/tendermint-validator/releases/download/0.0.1/sgx-validator_0.5.0_amd64.deb
 ```
 
 Unpack:
 
 ```bash
-sudo dpkg -i tendermint-validator_0.33.0_amd64.deb
+sudo dpkg -i tendermint-validator_0.5.0_amd64.deb
 ```
 
 ### Configure Validator Instance
 
 You will find the default file in ``~/.signer/config/config.toml``
 ```toml
-# Path to priv validator key json file
-key_file = "/path/to/priv_validator_key.json"
 
 # The state directory stores watermarks for double signing protection.
 # Each validator instance maintains a watermark.
@@ -40,11 +56,56 @@ chain_id = "chain-id-here"
 # Configure any number of p2p network nodes.
 # We recommend at least 2 nodes for redundancy.
 [[node]]
-address = "tcp://<node-a ip>:1234"
+address = "tcp://<node-a ip:1234"
 
 [[node]]
 address = "tcp://<node-b ip>:1234"
 ```
+
+By default, the signer will generate a random private key. If you wish to use this key, you can export the validator address using
+`signer --validator-address <chain-id>`
+
+You will also need to import your private key into the SGX enclave. To do this, run:
+
+`signer --import /path/to/key/file`
+
+Then choose a password to protect this key.
+
+#### Key file format
+The key file must be a base64 encoding of the ed25519 private key, in the same format as you will typically see in the `priv_validator_key.json` file:
+
+```json
+{
+  "address": "6F23B77EE70DE196515423C2038659923C94E397",
+  "pub_key": {
+    "type": "tendermint/PubKeyEd25519",
+    "value": "49uQVczw4fFyIDoWknVsV0NOEcWAyfgxcT56QnQZDqo="
+  },
+  "priv_key": {
+    "type": "tendermint/PrivKeyEd25519",
+    "value": "j3Tncxe2hyCIJjRhewkFeFr9kmox741YothJCGBa4Kjj25BVzPDh8XIgOhaSdWxXQ04RxYDJ+DFxPnpCdBkOqg=="
+  }
+}
+``` 
+
+In this example, we need our private key file to be
+```text
+j3Tncxe2hyCIJjRhewkFeFr9kmox741YothJCGBa4Kjj25BVzPDh8XIgOhaSdWxXQ04RxYDJ+DFxPnpCdBkOqg==
+```
+
+#### Checking configured key
+
+Check your key has been properly imported with 
+
+`signer --validator-address <chain-id>` 
+
+#### Exporting a private key
+
+To export a key, simple use the command
+
+`signer --export <path/to/destination>`
+
+And enter the password you configured when importing the key
 
 ## Configure p2p network nodes
 
@@ -56,7 +117,7 @@ To make a node available as a relay for a validator, find the `priv_validator_la
  # TCP or UNIX socket address for Tendermint to listen on for
  # connections from an external PrivValidator process
 -priv_validator_laddr = ""
-+priv_validator_laddr = "tcp://0.0.0.0:1234"
++priv_validator_laddr = "tcp://192.168.0.1:25567"
 ```
 
 _Full configuration and operation of your tendermint node is outside the scope of this guide. You should consult your network's documentation for node configuration._
@@ -71,11 +132,11 @@ Once your validator instance and node is configured, you can launch the signer.
 sudo systemctl start validator-node
 ```
 
-_We recommend using systemd or similar service management program as appropriate for your runtime platform._
+View the logs of the validator using
 
-## Security
-
-Security and management of any key material is outside the scope of this service. Always consider your own security and risk profile when dealing with sensitive keys, services, or infrastructure.
+```bash
+journalctl -f -u validator-node
+```
 
 ## No Liability
 
