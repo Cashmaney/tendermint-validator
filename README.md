@@ -52,6 +52,8 @@ _If you are not using a cloud-provider VM you should replace `/dev/sgx` with `/d
 
 ## Setup Validator
 
+**NOT AVAILABLE YET - USE DOCKER OR MANUALLY COMPILE**
+
 Download the package: 
 
 ```bash
@@ -166,6 +168,31 @@ View the logs of the validator using
 ```bash
 journalctl -f -u validator-node
 ```
+
+## Building from source
+
+### Requirements
+
+* SGX_SDK 2.9.101.2
+* Rust 04-07-2019
+* Go 1.14+ 
+
+#### Locally
+
+If you're a brave soul that wants to build this from source outside of docker just `make` should trigger all the good stuff.
+
+You'll end up with `./build/signer` and `./build/enclave.signed.so`.
+The enclave file should go in a path it can be found, such as `/usr/lib/` or, set the enclave directory using the environment variable `ENCLAVE_DIR`
+
+#### Inside docker
+
+Easier than setting everything up is just to build inside a docker container.
+
+Build using:
+
+`docker build -t cashmaney/sgx_signer .`
+
+You can find the base images under `./packaging_docker/`
 
 ## No Liability
 
