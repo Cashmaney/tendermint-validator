@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
-perl -i -pe 's/"x.x.x.x"/"'"$NODE_ADDRESS"'"/g' ~/.signer/config/config.toml
+set -e
 
-/bin/bash
+sed -i 's/x.x.x.x/'"$NODE_ADDRESS"'/g' /root/.signer/config/config.toml
+
+signer --import /root/priv_validator_key.json --password "$PASSWORD"
+
+signer

@@ -7,6 +7,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmtypes "github.com/tendermint/tendermint/types"
 	goed25519 "golang.org/x/crypto/ed25519"
+	"os"
 	"tendermint-signer/tee_validator/go-bridge/api"
 )
 
@@ -88,4 +89,16 @@ func (pv *EnclavePV) SignData(data []byte) ([]byte, error) {
 	}
 
 	return res, nil
+}
+
+func (pv *EnclavePV) HealthCheckEnclave() error {
+	err := api.CheckEnclave()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func IsHwSgxMode() bool {
+	return os.Getenv("SGX_MODE") != "SW"
 }

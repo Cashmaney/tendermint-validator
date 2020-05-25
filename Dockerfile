@@ -47,6 +47,8 @@ FROM cashmaney/enigma-sgx-base
 
 ENV ENCLAVE_DIR=/usr/lib/
 
+RUN cp /opt/sgxsdk/lib64/libsgx_uae_service.so /usr/lib/
+
 # Install ca-certificates
 WORKDIR /root
 

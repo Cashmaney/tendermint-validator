@@ -18,6 +18,15 @@ type u8_ptr = *C.uint8_t
 type usize = C.uintptr_t
 type cint = C.int
 
+func CheckEnclave() error {
+	errmsg := C.Buffer{}
+	_, err := C.health_check(&errmsg)
+	if err != nil {
+		return errorWithMessage(err, errmsg)
+	}
+	return nil
+}
+
 // KeyGen Seng KeyGen request to enclave
 func GetPubKey() ([]byte, error) {
 	errmsg := C.Buffer{}

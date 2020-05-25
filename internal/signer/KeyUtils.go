@@ -15,31 +15,33 @@ const (
 	PrivateKeyLength = 64
 )
 
-func ImportKey(val teeval.EnclavePV, importPath string) {
-	fmt.Print("Enter Password: ")
-	bytePassword, err := terminal.ReadPassword(0)
-	if err != nil {
-		log.Fatal(err)
-	}
+func ImportKey(val teeval.EnclavePV, importPath string, password string) {
+	if password == "" {
+		fmt.Print("Enter Password: ")
+		bytePassword, err := terminal.ReadPassword(0)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	fmt.Print("\nRepeat Password: ")
-	bytePassword2, err := terminal.ReadPassword(0)
-	if err != nil {
-		log.Fatal(err)
+		fmt.Print("\nRepeat Password: ")
+		bytePassword2, err := terminal.ReadPassword(0)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Print("\n")
+		if string(bytePassword) != string(bytePassword2) {
+			log.Fatal("Passwords do not match")
+		}
+		if len(bytePassword2) == 0 {
+			log.Fatal("Password cannot be empty")
+		}
+		password = string(bytePassword)
 	}
-	fmt.Print("\n")
-	if string(bytePassword) != string(bytePassword2) {
-		log.Fatal("Passwords do not match")
-	}
-	if len(bytePassword2) == 0 {
-		log.Fatal("Password cannot be empty")
-	}
-
 	privKey, err := openPrivateKeyFile(importPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = val.ImportKey(privKey, bytePassword)
+	err = val.ImportKey(privKey, []byte(password))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,14 +49,16 @@ func ImportKey(val teeval.EnclavePV, importPath string) {
 	return
 }
 
-func ExportKey(val teeval.EnclavePV, exportPath string) {
-	fmt.Print("Enter Password: ")
-	bytePassword, err := terminal.ReadPassword(0)
-	if err != nil {
-		log.Fatal(err)
+func ExportKey(val teeval.EnclavePV, exportPath string, password string) {
+	if password == "" {
+		fmt.Print("Enter Password: ")
+		bytePassword, err := terminal.ReadPassword(0)
+		if err != nil {
+			log.Fatal(err)
+		}
+		password = string(bytePassword)
 	}
-
-	res, err := val.ExportKey(bytePassword)
+	res, err := val.ExportKey([]byte(password))
 	if err != nil {
 		log.Fatal(err)
 	}

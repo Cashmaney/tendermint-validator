@@ -6,15 +6,15 @@ use sgx_types::SgxResult;
 use crate::enclave_api::{e_api_export_key, e_api_import_key};
 
 
-pub fn e_if_get_pubkey() -> [u8; 32] {
+pub fn e_if_get_pubkey() -> SgxResult<[u8; 32]> {
     let enclave = init_enclave().unwrap();
-    let pubkey = e_api_get_pubkey(enclave.geteid()).unwrap();
+    let pubkey = e_api_get_pubkey(enclave.geteid());
     pubkey
 }
 
-pub fn e_if_sign(data: &[u8]) -> [u8; 64] {
+pub fn e_if_sign(data: &[u8]) -> SgxResult<[u8; 64]> {
     let enclave = init_enclave().unwrap();
-    let sig = e_api_sign(enclave.geteid(), data).unwrap();
+    let sig = e_api_sign(enclave.geteid(), data);
     sig
 }
 
@@ -28,6 +28,13 @@ pub fn e_if_export_key(key: &[u8]) -> SgxResult<[u8; 32]> {
     let enclave = init_enclave().unwrap();
     let res = e_api_export_key(enclave.geteid(), key);
     res
+}
+
+pub fn health_check_enclave() -> SgxResult<()> {
+    if let Err(status) = init_enclave() {
+        return Err(status);
+    }
+    Ok(())
 }
 
 #[cfg(test)]

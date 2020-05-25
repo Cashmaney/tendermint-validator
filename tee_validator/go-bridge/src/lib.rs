@@ -7,8 +7,19 @@ mod error;
 use std::vec::Vec;
 
 use error::{set_error};
-use tee_validator::{e_if_get_pubkey, e_if_sign, e_if_import_key, e_if_export_key};
+use tee_validator::{e_if_get_pubkey, e_if_sign, e_if_import_key, e_if_export_key, health_check_enclave};
 pub use memory::{free_rust, Buffer};
+
+#[no_mangle]
+pub extern "C" fn health_check(err: Option<&mut Buffer>) -> bool {
+    match health_check_enclave() {
+        Ok(_) => true,
+        Err(status) => {
+            set_error(status.to_string(), err);
+            return false;
+        },
+    }
+}
 
 #[no_mangle]
 pub extern "C" fn import_key(key: Buffer, password: Buffer, err: Option<&mut Buffer>) -> bool {
@@ -64,9 +75,16 @@ pub extern "C" fn export_key(password: Buffer, err: Option<&mut Buffer>) -> Buff
 
 #[no_mangle]
 pub extern "C" fn get_pubkey(err: Option<&mut Buffer>) -> Buffer {
-    let result = e_if_get_pubkey();
-    error::clear_error();
-    Buffer::from_vec(result.to_vec())
+    return match e_if_get_pubkey() {
+        Err(e) => {
+            error::set_error(e.to_string(), err);
+            Buffer::default()
+        },
+        Ok(key) => {
+            error::clear_error();
+            Buffer::from_vec(key.to_vec())
+        }
+    }
 }
 
 #[no_mangle]
@@ -78,9 +96,16 @@ pub extern "C" fn sign(bytes: Buffer, err: Option<&mut Buffer>) -> Buffer {
         }
         Some(r) => r,
     };
-    let result = e_if_sign(data);
-    error::clear_error();
-    Buffer::from_vec(result.to_vec())
+    return match e_if_sign(data) {
+        Err(e) => {
+            error::set_error(e.to_string(), err);
+            Buffer::default()
+        },
+        Ok(sig) => {
+            error::clear_error();
+            Buffer::from_vec(sig.to_vec())
+        }
+    }
 }
 
 // #[no_mangle]

@@ -27,39 +27,38 @@ func fileExists(filename string) bool {
 func main() {
 
 	val := &teeval.EnclavePV{}
-	//
-	//value := val.GetPubKey().Address()
-	//
-	//fmt.Println(value)
-	//
-	//data := "ABC"
-	//
-	//res, err := val.SignData([]byte(data))
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//pk := val.GetPubKey()
-	//result := pk.VerifyBytes([]byte(data), res)
-	//fmt.Print("Verifying signature.. ")
-	//fmt.Println(result)
 
 	logger := tmlog.NewTMLogger(
 		tmlog.NewSyncWriter(os.Stdout),
 	).With("module", "validator")
 
-	var keyImport = flag.String("import", "", "path to key file")
-	var keyExport = flag.String("export", "", "path to key file")
+	logger.Info("Verifying enclave...")
+	err := val.HealthCheckEnclave()
+
+	if err != nil {
+		// ignore this for now...?
+		if err.Error() == "SGX_ERROR_NO_DEVICE" {
+			log.Fatal(fmt.Sprintf("Error starting enclave - No SGX device recognized. Is SGX properly installed?"))
+		} else if err.Error() == "SGX_ERROR_UNEXPECTED" {
+			log.Fatal(fmt.Sprintf("Error starting enclave - Unexpected error while starting enclave. Is SGX properly installed?"))
+		}
+	}
+	logger.Info("Enclave running")
+
+	var keyImport = flag.String("import", "", "Path to imported file")
+	var keyExport = flag.String("export", "", "path to exported file")
+	// var ValidatorAddress = flag.Bool("validator-address", true, "Show validator address")
+	var Password = flag.String("password", "", "Set password without prompt. Used to set password without terminal interaction")
 	var configFile = flag.String("config", "", "path to configuration file")
 	flag.Parse()
 
 	if *keyImport != "" {
-		signer.ImportKey(*val, *keyImport)
+		signer.ImportKey(*val, *keyImport, *Password)
 		return
 	}
 
 	if *keyExport != "" {
-		signer.ExportKey(*val, *keyExport)
+		signer.ExportKey(*val, *keyExport, *Password)
 		return
 	}
 
@@ -76,6 +75,10 @@ func main() {
 		"Tendermint Validator",
 		"priv-state-dir", config.PrivValStateDir,
 	)
+
+	if !teeval.IsHwSgxMode() {
+		logger.Info("Warning: Running in software mode. This is for testing purposes only.")
+	}
 
 	signer.InitSerialization()
 

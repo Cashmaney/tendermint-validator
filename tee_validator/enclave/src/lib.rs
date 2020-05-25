@@ -3,6 +3,8 @@
 
 #![cfg_attr(target_env = "sgx", feature(rustc_private))]
 
+// #![no_std]
+
 #[cfg(not(target_env = "sgx"))]
 #[macro_use]
 extern crate sgx_tstd as std;

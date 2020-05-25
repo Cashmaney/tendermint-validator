@@ -18,9 +18,8 @@ pub fn unseal_pair() -> SgxResult<ed25519::Pair> {
     let seedvec = unseal_seed_with_key(key)?;
 
     let mut seed = [0u8; 32];
-    let seedvec = &seedvec[..seed.len()];
     // panics if not enough data
-    seed.copy_from_slice(seedvec);
+    seed.copy_from_slice(&seedvec);
     Ok(ed25519::Pair::from_seed(&seed))
 }
 
@@ -35,6 +34,7 @@ pub fn create_sealed_if_absent() -> SgxResult<sgx_status_t> {
         );
         return create_sealed_seed();
     }
+
     Ok(sgx_status_t::SGX_SUCCESS)
 }
 

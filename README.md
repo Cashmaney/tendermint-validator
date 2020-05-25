@@ -6,7 +6,9 @@ With modifications to work with tendermint 0.33.0, inside SGX.
 
 ## Design
 
-A lightweight alternative to using a full node instance for validating blocks. The validator is able to connect to any number of sentry nodes and will sign blocks provided by the nodes. The validator maintains a watermark file to protect against double signing.
+A lightweight alternative to using a full node instance for validating blocks. The validator is able to connect to any number of sentry nodes and will sign blocks provided by the nodes. 
+
+The validator maintains a watermark file to protect against double signing (_outside the enclave for now_)
 
 ## Pre-requisites
 
@@ -19,6 +21,16 @@ You will also need an SGX-capable machine
 Setting up SGX is outside the scope of this document. This package has been configured to work with version 2.9.1. You can
 refer to pages such as [this](https://github.com/enigmampc/EnigmaBlockchain/blob/master/docs/dev/setup-sgx.md) for installation 
 instructions.
+
+## Software Mode
+
+If you don't have an SGX-capable machine at the ready, you can still test out this validator for yourself in software mode.
+*This will not protect your keys in a safe manner and you should never use this mode for anything other than testing*
+
+Run the prebuilt docker image:
+`docker run -it cashmaney/sgx_signer_sw:latest`
+
+Then setup using the steps [here](#configure-validator-instance)
 
 ## Docker Setup
 
@@ -83,8 +95,14 @@ You will also need to import your private key into the SGX enclave. To do this, 
 Then choose a password to protect this key.
 
 #### Key file format
-The key file must be a base64 encoding of the ed25519 private key, in the same format as you will typically see in the `priv_validator_key.json` file:
+You can import one of two formats:
 
+1. Cosmos private validator keys - a `priv_validator_key.json` file [example](#example-json-file)
+2. Base64 encoding of the private key (decrypted) [example](#example-base64-key)
+
+Import and exporting of encrypted private keys is a future improvement.
+
+##### Example Json file
 ```json
 {
   "address": "6F23B77EE70DE196515423C2038659923C94E397",
@@ -99,12 +117,12 @@ The key file must be a base64 encoding of the ed25519 private key, in the same f
 }
 ``` 
 
-In this example, we need our private key file to be
+##### Example base64 key
 ```text
 j3Tncxe2hyCIJjRhewkFeFr9kmox741YothJCGBa4Kjj25BVzPDh8XIgOhaSdWxXQ04RxYDJ+DFxPnpCdBkOqg==
 ```
 
-#### Checking configured key
+#### Checking configured key (doesn't work yet :( )
 
 Check your key has been properly imported with 
 
