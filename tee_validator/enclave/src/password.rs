@@ -1,10 +1,10 @@
 use crate::aes::AesGcm256Key;
-use crate::fs;
 use crate::consts::PASSWORD_FILE;
+use crate::fs;
 
 use sgx_types::{sgx_status_t, SgxResult};
 
-pub fn seal_password(key: AesGcm256Key) -> SgxResult<sgx_status_t> {
+pub fn seal_password(key: &AesGcm256Key) -> SgxResult<sgx_status_t> {
     fs::seal(&key.to_slice(), PASSWORD_FILE)
 }
 

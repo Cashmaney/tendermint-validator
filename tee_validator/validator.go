@@ -7,6 +7,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmtypes "github.com/tendermint/tendermint/types"
 	goed25519 "golang.org/x/crypto/ed25519"
+	"log"
 	"os"
 	"tendermint-signer/tee_validator/go-bridge/api"
 )
@@ -33,7 +34,7 @@ func buildPubKey(inputBytes []byte) crypto.PubKey {
 func (pv *EnclavePV) GetPubKey() crypto.PubKey {
 	res, err := api.GetPubKey()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	pv.pubKey = buildPubKey(res)
 	return pv.pubKey
@@ -89,6 +90,15 @@ func (pv *EnclavePV) SignData(data []byte) ([]byte, error) {
 	}
 
 	return res, nil
+}
+
+func (pv *EnclavePV) GenerateKey(password []byte) error {
+	err := api.Generate(password)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (pv *EnclavePV) HealthCheckEnclave() error {

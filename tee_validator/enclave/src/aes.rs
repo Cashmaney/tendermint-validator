@@ -1,10 +1,10 @@
 use std::prelude::v1::*;
 
 use ring::aead;
-use std::format;
-use std::path::Path;
 use sgx_rand::{Rng, StdRng};
 use sgx_types::*;
+use std::format;
+use std::path::Path;
 
 use crate::blake2_256;
 
@@ -23,7 +23,6 @@ impl AesGcm256Key {
     pub fn new(in_key: &[u8], in_iv: &[u8]) -> SgxResult<Self> {
         if in_key.len() != AES_GCM_256_KEY_LENGTH {
             panic!("Invalid key length for AesGcm256: {}")
-
         }
         if in_iv.len() == AES_GCM_256_IV_LENGTH {
             panic!("Invalid iv length for AesGcm256: {}")
@@ -45,7 +44,6 @@ impl AesGcm256Key {
     }
 
     pub fn from_slice(slice: &[u8]) -> Self {
-
         if slice.len() != AES_GCM_256_IV_LENGTH + AES_GCM_256_KEY_LENGTH {
             panic!("Encryption key corrupted")
         }
@@ -54,11 +52,10 @@ impl AesGcm256Key {
         let mut key = [0u8; AES_GCM_256_KEY_LENGTH];
 
         iv.copy_from_slice(&slice[..AES_GCM_256_IV_LENGTH]);
-        key.copy_from_slice(&slice[AES_GCM_256_IV_LENGTH..AES_GCM_256_IV_LENGTH + AES_GCM_256_KEY_LENGTH]);
-        return Self {
-            iv,
-            key
-        }
+        key.copy_from_slice(
+            &slice[AES_GCM_256_IV_LENGTH..AES_GCM_256_IV_LENGTH + AES_GCM_256_KEY_LENGTH],
+        );
+        return Self { iv, key };
     }
 
     pub fn from_password(in_pass: &[u8]) -> Self {
@@ -67,19 +64,11 @@ impl AesGcm256Key {
         let mut iv = [0u8; AES_GCM_256_IV_LENGTH];
         let mut rand = match StdRng::new() {
             Ok(rng) => rng,
-            Err(_) => {
-                return Self {
-                    key: [0u8; AES_GCM_256_KEY_LENGTH],
-                    iv,
-                };
-            }
+            Err(_) => panic!("Failed to initiate random number generator. Fix me!"),
         };
         rand.fill_bytes(&mut iv);
 
-        return Self {
-            iv,
-            key
-        }
+        return Self { iv, key };
     }
 
     pub fn random() -> Self {
@@ -104,8 +93,7 @@ pub fn aead_decrypt<'a>(
     key: &[u8],
     iv: &[u8],
 ) -> SgxResult<&'a mut [u8]> {
-    let key =
-        aead::UnboundKey::new(alg, key).map_err(|_| panic!("Aead unbound key init error"))?;
+    let key = aead::UnboundKey::new(alg, key).map_err(|_| panic!("Aead unbound key init error"))?;
     let nonce =
         aead::Nonce::try_assume_unique_for_key(iv).map_err(|_| panic!("Aead iv init error"))?;
     let aad = aead::Aad::from([0u8; 8]);
@@ -123,8 +111,7 @@ pub fn aead_encrypt(
     key: &[u8],
     iv: &[u8],
 ) -> SgxResult<()> {
-    let key =
-        aead::UnboundKey::new(alg, key).map_err(|_| panic!("Aead unbound key init error"))?;
+    let key = aead::UnboundKey::new(alg, key).map_err(|_| panic!("Aead unbound key init error"))?;
     let nonce =
         aead::Nonce::try_assume_unique_for_key(iv).map_err(|_| panic!("Aead iv init error"))?;
     let aad = aead::Aad::from([0u8; 8]);
@@ -136,7 +123,6 @@ pub fn aead_encrypt(
     Ok(())
 }
 
-
 impl Default for AesGcm256Key {
     fn default() -> Self {
         let mut key = [0u8; AES_GCM_256_KEY_LENGTH];
@@ -144,10 +130,7 @@ impl Default for AesGcm256Key {
         let mut rand = match StdRng::new() {
             Ok(rng) => rng,
             Err(_) => {
-                return Self {
-                    key,
-                    iv,
-                };
+                panic!("Failed to initiate random number generator. Fix me!");
             }
         };
         rand.fill_bytes(&mut key);

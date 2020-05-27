@@ -1,15 +1,15 @@
 extern crate sgx_types;
 extern crate sgx_urts;
 
-use std::path::Path;
-use std::env;
 use sgx_types::*;
 use sgx_urts::SgxEnclave;
+use std::env;
+use std::path::Path;
 
-use std::{fs::File, path::PathBuf};
 use std::io::{Read, Write};
+use std::{fs::File, path::PathBuf};
 
-use crate::consts::{ENCLAVE_FILE};
+use crate::consts::ENCLAVE_FILE;
 
 use log::*;
 
@@ -36,6 +36,13 @@ extern "C" {
         retval: *mut sgx_status_t,
         key: *const u8,
         key_size: usize,
+        password: *const u8,
+        password_size: usize,
+    ) -> sgx_status_t;
+
+    fn ecall_generate_key(
+        eid: sgx_enclave_id_t,
+        retval: *mut sgx_status_t,
         password: *const u8,
         password_size: usize,
     ) -> sgx_status_t;
@@ -95,8 +102,7 @@ pub fn e_api_get_pubkey(eid: sgx_enclave_id_t) -> SgxResult<[u8; 32]> {
 pub fn e_api_sign(eid: sgx_enclave_id_t, data: &[u8]) -> SgxResult<[u8; 64]> {
     let mut sig = [0u8; 64];
     let mut status = sgx_status_t::SGX_SUCCESS;
-    let result =
-        unsafe { ecall_sign(eid, &mut status, data.as_ptr(), data.len(), &mut sig) };
+    let result = unsafe { ecall_sign(eid, &mut status, data.as_ptr(), data.len(), &mut sig) };
     if status != sgx_status_t::SGX_SUCCESS {
         return Err(status);
     }
@@ -108,12 +114,30 @@ pub fn e_api_sign(eid: sgx_enclave_id_t, data: &[u8]) -> SgxResult<[u8; 64]> {
 }
 
 pub fn e_api_import_key(eid: sgx_enclave_id_t, key: &[u8], password: &[u8]) -> SgxResult<()> {
-
     let mut status = sgx_status_t::SGX_SUCCESS;
-    let result =
-        unsafe { ecall_import_key(eid, &mut status,
-                                  key.as_ptr(), key.len(),
-                                  password.as_ptr(), password.len()) };
+    let result = unsafe {
+        ecall_import_key(
+            eid,
+            &mut status,
+            key.as_ptr(),
+            key.len(),
+            password.as_ptr(),
+            password.len(),
+        )
+    };
+    if status != sgx_status_t::SGX_SUCCESS {
+        return Err(status);
+    }
+    if result != sgx_status_t::SGX_SUCCESS {
+        return Err(result);
+    }
+    // check that sig is not 0
+    Ok(())
+}
+
+pub fn e_api_generate_key(eid: sgx_enclave_id_t, password: &[u8]) -> SgxResult<()> {
+    let mut status = sgx_status_t::SGX_SUCCESS;
+    let result = unsafe { ecall_generate_key(eid, &mut status, password.as_ptr(), password.len()) };
     if status != sgx_status_t::SGX_SUCCESS {
         return Err(status);
     }
@@ -127,8 +151,15 @@ pub fn e_api_import_key(eid: sgx_enclave_id_t, key: &[u8], password: &[u8]) -> S
 pub fn e_api_export_key(eid: sgx_enclave_id_t, password: &[u8]) -> SgxResult<[u8; 32]> {
     let mut key = [0u8; 32];
     let mut status = sgx_status_t::SGX_SUCCESS;
-    let result =
-        unsafe { ecall_export_key(eid, &mut status, password.as_ptr(), password.len(), &mut key) };
+    let result = unsafe {
+        ecall_export_key(
+            eid,
+            &mut status,
+            password.as_ptr(),
+            password.len(),
+            &mut key,
+        )
+    };
     if status != sgx_status_t::SGX_SUCCESS {
         return Err(status);
     }

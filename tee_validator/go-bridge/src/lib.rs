@@ -1,14 +1,17 @@
-extern crate tee_validator;
 extern crate errno;
+extern crate tee_validator;
 
-mod memory;
 mod error;
+mod memory;
 
 use std::vec::Vec;
 
-use error::{set_error};
-use tee_validator::{e_if_get_pubkey, e_if_sign, e_if_import_key, e_if_export_key, health_check_enclave};
+use error::set_error;
 pub use memory::{free_rust, Buffer};
+use tee_validator::{
+    e_if_export_key, e_if_generate_key, e_if_get_pubkey, e_if_import_key, e_if_sign,
+    health_check_enclave,
+};
 
 #[no_mangle]
 pub extern "C" fn health_check(err: Option<&mut Buffer>) -> bool {
@@ -17,7 +20,7 @@ pub extern "C" fn health_check(err: Option<&mut Buffer>) -> bool {
         Err(status) => {
             set_error(status.to_string(), err);
             return false;
-        },
+        }
     }
 }
 
@@ -40,6 +43,28 @@ pub extern "C" fn import_key(key: Buffer, password: Buffer, err: Option<&mut Buf
     };
 
     return match e_if_import_key(data, pass) {
+        Err(e) => {
+            error::set_error(e.to_string(), err);
+            false
+        }
+        Ok(_) => {
+            error::clear_error();
+            true
+        }
+    };
+}
+
+#[no_mangle]
+pub extern "C" fn generate_key(password: Buffer, err: Option<&mut Buffer>) -> bool {
+    let pass = match password.read() {
+        None => {
+            set_error("Password cannot be empty".to_string(), err);
+            return false;
+        }
+        Some(r) => r,
+    };
+
+    return match e_if_generate_key(pass) {
         Err(e) => {
             error::set_error(e.to_string(), err);
             false
@@ -79,12 +104,12 @@ pub extern "C" fn get_pubkey(err: Option<&mut Buffer>) -> Buffer {
         Err(e) => {
             error::set_error(e.to_string(), err);
             Buffer::default()
-        },
+        }
         Ok(key) => {
             error::clear_error();
             Buffer::from_vec(key.to_vec())
         }
-    }
+    };
 }
 
 #[no_mangle]
@@ -100,12 +125,12 @@ pub extern "C" fn sign(bytes: Buffer, err: Option<&mut Buffer>) -> Buffer {
         Err(e) => {
             error::set_error(e.to_string(), err);
             Buffer::default()
-        },
+        }
         Ok(sig) => {
             error::clear_error();
             Buffer::from_vec(sig.to_vec())
         }
-    }
+    };
 }
 
 // #[no_mangle]

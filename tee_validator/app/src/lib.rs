@@ -1,10 +1,9 @@
-mod enclave_api;
 mod consts;
+mod enclave_api;
 
-use enclave_api::{e_api_get_pubkey, init_enclave, e_api_sign};
+use crate::enclave_api::{e_api_export_key, e_api_generate_key, e_api_import_key};
+use enclave_api::{e_api_get_pubkey, e_api_sign, init_enclave};
 use sgx_types::SgxResult;
-use crate::enclave_api::{e_api_export_key, e_api_import_key};
-
 
 pub fn e_if_get_pubkey() -> SgxResult<[u8; 32]> {
     let enclave = init_enclave().unwrap();
@@ -21,6 +20,12 @@ pub fn e_if_sign(data: &[u8]) -> SgxResult<[u8; 64]> {
 pub fn e_if_import_key(key: &[u8], password: &[u8]) -> SgxResult<()> {
     let enclave = init_enclave().unwrap();
     let res = e_api_import_key(enclave.geteid(), key, password);
+    res
+}
+
+pub fn e_if_generate_key(password: &[u8]) -> SgxResult<()> {
+    let enclave = init_enclave().unwrap();
+    let res = e_api_generate_key(enclave.geteid(), password);
     res
 }
 

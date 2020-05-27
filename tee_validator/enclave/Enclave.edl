@@ -47,6 +47,11 @@ enclave {
             size_t password_size
         );
 
+        public sgx_status_t ecall_generate_key(
+            [in, size=password_size] const uint8_t* password,
+            size_t password_size
+        );
+
         public sgx_status_t ecall_export_key(
             [in, size=pass_size] const uint8_t* password,
             size_t pass_size,

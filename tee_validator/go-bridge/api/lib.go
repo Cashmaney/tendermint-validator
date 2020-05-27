@@ -48,12 +48,23 @@ func Sign(bytes []byte) ([]byte, error) {
 	return receiveSlice(res), nil
 }
 
-// Import a public key from the enclave
+// Import a private key into the enclave
 func Import(bytes []byte, password []byte) error {
 	slice := sendSlice(bytes)
 	passwordSlice := sendSlice(password)
 	errmsg := C.Buffer{}
 	_, err := C.import_key(slice, passwordSlice, &errmsg)
+	if err != nil {
+		return errorWithMessage(err, errmsg)
+	}
+	return nil
+}
+
+// Generate new key inside the enclave
+func Generate(password []byte) error {
+	passwordSlice := sendSlice(password)
+	errmsg := C.Buffer{}
+	_, err := C.generate_key(passwordSlice, &errmsg)
 	if err != nil {
 		return errorWithMessage(err, errmsg)
 	}

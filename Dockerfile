@@ -16,7 +16,7 @@ RUN tar -C /usr/local -xzf go1.14.2.linux-amd64.tar.gz
 
 WORKDIR /go/src/tendermint-validator/
 
-ARG SGX_MODE=HW
+ARG SGX_MODE=SW
 ENV SGX_MODE=${SGX_MODE}
 ENV MITIGATION_CVE_2020_0551=LOAD
 
@@ -47,7 +47,8 @@ FROM cashmaney/enigma-sgx-base
 
 ENV ENCLAVE_DIR=/usr/lib/
 
-RUN cp /opt/sgxsdk/lib64/libsgx_uae_service.so /usr/lib/
+# workaround because paths seem kind of messed up
+RUN cp /opt/sgxsdk/lib64/* /usr/lib/ -r
 
 # Install ca-certificates
 WORKDIR /root
@@ -69,4 +70,4 @@ RUN chmod +x signer_init.sh
 # COPY /opt/sgxsdk/lib64/libsgx_uae_service.so /usr/lib/libsgx_uae_service.so
 
 # Run enigmad by default, omit entrypoint to ease using container with enigmacli
-ENTRYPOINT ["/bin/bash", "signer_init.sh"]
+ENTRYPOINT ["/bin/bash"]

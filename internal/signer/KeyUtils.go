@@ -5,15 +5,61 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/libs/bech32"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"log"
+	"strings"
 	teeval "tendermint-signer/tee_validator"
 )
 
 const (
 	PrivateKeyLength = 64
 )
+
+func GetValidaorAddress(val teeval.EnclavePV, chainId string) {
+	pubkey := val.GetPubKey()
+
+	prefix := strings.Split(chainId, "-")[0] + "val" + "oper"
+
+	result, err := bech32.ConvertAndEncode(prefix, pubkey.Address())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("validator-address: %s\n", result)
+}
+
+func GenerateKey(val teeval.EnclavePV, password string) {
+	if password == "" {
+		fmt.Print("Enter Password: ")
+		bytePassword, err := terminal.ReadPassword(0)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Print("\nRepeat Password: ")
+		bytePassword2, err := terminal.ReadPassword(0)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Print("\n")
+		if string(bytePassword) != string(bytePassword2) {
+			log.Fatal("Passwords do not match")
+		}
+		if len(bytePassword2) == 0 {
+			log.Fatal("Password cannot be empty")
+		}
+		password = string(bytePassword)
+	}
+
+	err := val.GenerateKey([]byte(password))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(fmt.Sprintf("Key generated successfully. You can now use --address to see your address"))
+	return
+}
 
 func ImportKey(val teeval.EnclavePV, importPath string, password string) {
 	if password == "" {

@@ -47,7 +47,9 @@ func main() {
 
 	var keyImport = flag.String("import", "", "Path to imported file")
 	var keyExport = flag.String("export", "", "path to exported file")
-	// var ValidatorAddress = flag.Bool("validator-address", true, "Show validator address")
+	var address = flag.String("address", "", "Show validator address - requires chain-id")
+	var generate = flag.Bool("keygen", false, "Generate a new key inside the enclave")
+
 	var Password = flag.String("password", "", "Set password without prompt. Used to set password without terminal interaction")
 	var configFile = flag.String("config", "", "path to configuration file")
 	flag.Parse()
@@ -55,14 +57,16 @@ func main() {
 	if *keyImport != "" {
 		signer.ImportKey(*val, *keyImport, *Password)
 		return
-	}
-
-	if *keyExport != "" {
+	} else if *keyExport != "" {
 		signer.ExportKey(*val, *keyExport, *Password)
 		return
-	}
-
-	if *configFile == "" {
+	} else if *generate {
+		signer.GenerateKey(*val, *Password)
+		return
+	} else if *address != "" {
+		signer.GetValidaorAddress(*val, *address)
+		return
+	} else if *configFile == "" {
 		*configFile = os.ExpandEnv("$HOME/.signer/config/config.toml")
 	}
 
