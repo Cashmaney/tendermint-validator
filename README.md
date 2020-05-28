@@ -2,7 +2,10 @@
 
 A lightweight single key tendermint validator for sentry nodes. Based on https://gitlab.com/polychainlabs/tendermint-validator
 
-With modifications to work with tendermint 0.33.0, inside SGX. 
+With modifications to work with tendermint 0.33.x, inside SGX. 
+
+While this is still a WIP, it has been running on The Secret Network mainnet for the past week with 0 downtime on an Azure Confidential Compute machine - 
+https://explorer.cashmaney.com/validator/6F23B77EE70DE196515423C2038659923C94E397
 
 ## Design
 
